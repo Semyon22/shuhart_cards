@@ -1,0 +1,64 @@
+from tkinter import *
+from tkinter import ttk
+
+from Plot_1 import BuildPlot
+
+# функция отрисовки
+
+
+def show_graph1():
+
+    BuildPlot(float(entry_for_median.get()),float(entry_for_deviation.get()),entry_for_file.get(),50,50, window=window)
+
+def selected(event):
+    # получаем выделенный элемент
+    selection = combobox.get()
+    print(selection)
+
+# иницилизация окна
+window = Tk()
+
+# Заголовок
+window.title('Контрольные Карты Шухарта')
+
+# Размер Окна
+window.geometry("1080x1080")
+
+# frame_form = LabelFrame(width=100, height=400)
+# frame_form.pack()
+#кнопки
+plot_button = ttk.Button(text="Запустить",command=show_graph1)
+
+plot_button.grid(row=3, column=2,sticky='ew')
+#выбор
+cards = ["Контрольные карты для управления процессом по уровню настройки", "x-карты для средних значений", "x-карты медиан", "x-карты исходных значений"]
+combobox = ttk.Combobox(values=cards,width=45 ,state="readonly")
+combobox.grid(row=0,column=1,columnspan=2,sticky='w',padx=100)
+combobox.bind("<<ComboboxSelected>>", selected)
+#формы вводы данных
+entry_for_file=ttk.Entry()
+entry_for_file.grid(row=1,column=1,sticky='w',pady=6,padx=100)
+
+entry_for_median=ttk.Entry()
+entry_for_median.grid(row=2,column=1,sticky='w',pady=6,padx=100)
+
+entry_for_deviation=ttk.Entry()
+entry_for_deviation.grid(row=3,column=1,sticky='w',pady=6,padx=100)
+#текстовые лейблы:
+lbl_for_file=Label(text="Введите имя Файла:")
+lbl_for_file.grid(row=1,column=0,sticky='w')
+
+lbl_for_median=Label(text="Введите среднее значение:")
+lbl_for_median.grid(row=2,column=0,sticky='w')
+
+lbl_for_deviation=Label(text="Введите отклонение:")
+lbl_for_deviation.grid(row=3,column=0,sticky='w')
+
+lbl_for_combox=Label(text="Выберите карту")
+lbl_for_combox.grid(row=0,column=0,sticky='w')
+#конфигураций столбцов
+
+#конфигурация строк
+
+if __name__ == "__main__":
+    window.mainloop()
