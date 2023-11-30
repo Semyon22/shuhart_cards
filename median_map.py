@@ -142,35 +142,37 @@ def PlotUpdate(new_y, x, y, ax, median, OEG,UEG,OWG,UWG,view_size):
     ax.plot([x[0], x[-1]], [UWG] * 2, 'g--', linewidth=0.5,color='yellow',label='UWG')
 
 
-    ax.legend(['Values','Median','OEG','UEG','UWG','UWG'],loc='upper left')
+    ax.legend(['Values','Median','OEG','UEG','UWG','UWG'],loc='upper left',prop={'size': 8})
 
     ax.autoscale_view(True, True, True)
     ax.set_facecolor("black")
 
-    check_result = CheckFlags(y, median, OEG)
-
+    # if (len(CheckFlags(y,median,OEG))>=1):
+    #     print('работает')
+    #     global pause
+    #     pause ^= True
     return ax
 
 
 
-def BuildPlot(view_size,view_speed):
+def BuildPlot(view_size,view_speed,window):
     x = []
     y = []
     fig, ax = plt.subplots()
-    fig.set_size_inches(5, 3)
+    fig.set_size_inches(5.5, 4.5)
 
     OEG,UEG,OWG,UWG=get_control_boundaries(m)
     file = open('seq',
                 'r')
     data = GetData(file)
 
-    # canvas=FigureCanvasTkAgg(fig,master=window)
-    # canvas.draw()
-    # canvas.get_tk_widget().grid(column=2,row=0)
-    # # toolbar = NavigationToolbar2Tk(canvas,
-    # #                                window)
-    # # toolbar.update()
-    # canvas.get_tk_widget().grid(column=2,row=0)
+    canvas=FigureCanvasTkAgg(fig,master=window)
+    canvas.draw()
+    canvas.get_tk_widget().grid(column=0,row=4,columnspan=2,sticky='ew')
+    # toolbar = NavigationToolbar2Tk(canvas,
+    #                                window)
+    # toolbar.update()
+    canvas.get_tk_widget().grid(column=0,row=4,columnspan=2,sticky='ew')
 
     ani = animation.FuncAnimation(fig, PlotUpdate, data, fargs=(x, y, ax, np.median(m),OEG,UEG,OWG,UWG,view_size ), interval=view_speed, repeat=False)
 
@@ -184,6 +186,6 @@ def BuildPlot(view_size,view_speed):
         fig.canvas.draw_idle()
 
     spos.on_changed(update)
-    plt.show()
-    # ani.save()
-BuildPlot(50,50)
+    # plt.show()
+    ani.save()
+# BuildPlot(50,50)

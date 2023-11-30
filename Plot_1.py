@@ -102,10 +102,10 @@ def BuildPlot(average, deviation, filename, view_size, view_speed,window):
     data = GetData(file)
 
     fig, ax = plt.subplots()
-    fig.set_size_inches(10, 5)
+    fig.set_size_inches(5.5, 4.5)
     canvas=FigureCanvasTkAgg(fig,master=window)
     canvas.draw()
-    canvas.get_tk_widget().grid(column=0,row=4)
+    canvas.get_tk_widget().grid(column=0,row=4,columnspan=2,sticky='ew')
     # toolbar = NavigationToolbar2Tk(canvas,
     #                                window)
     # toolbar.update()
