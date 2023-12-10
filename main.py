@@ -1,12 +1,17 @@
 import math
 from matplotlib.animation import FuncAnimation
-from matplotlib.widgets import Slider
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,
                                                NavigationToolbar2Tk)
+from matplotlib.widgets import Slider
+import tkinter as tk
 import matplotlib.pyplot as plt
 import numpy as np
 
 import Generator
+
+FLAGS = []
+TO_DELETE_WIDGET = None
+TO_DELETE_LABEL = None
 
 
 def main(loc, scale, number_of_data):
@@ -20,9 +25,7 @@ def main(loc, scale, number_of_data):
             data[i, j] = Generator.GenRandVal(norm_val, loc, scale)
     grouped_data = np.mean(data, axis=1)
     std_dev_within = np.std(data.flatten(), ddof=1)
-    center_line = loc
-    return grouped_data, std_dev_within, center_line
-
+    return grouped_data, std_dev_within
 
 def control_values(center_line, std_dev_within):
     upper_limit = center_line + 2.576/math.sqrt(4) * std_dev_within
@@ -57,9 +60,9 @@ def CheckFlags(data, average, deviation):
         else:
             monotone_type = '-'
         for i in range(2, 6):
-            if monotone_type == '+' and data[-i] > data[-i - 1]:
+            if monotone_type == '+' and data[-i] > data[-i-1]:
                 continue
-            elif monotone_type == '-' and data[-i] < data[-i - 1]:
+            elif monotone_type == '-' and data[-i] < data[-i-1]:
                 continue
             else:
                 flag_monotone = 0
@@ -73,7 +76,7 @@ def CheckFlags(data, average, deviation):
             oneside_type = '+'
         else:
             oneside_type = '-'
-        for i in range(2, 7 + 1):
+        for i in range(2, 7+1):
             if oneside_type == '+' and data[-i] > average:
                 continue
             elif oneside_type == '-' and data[-i] < average:
@@ -84,17 +87,30 @@ def CheckFlags(data, average, deviation):
     else:
         flag_oneside = 0
 
-    result = {}
+    result = []
     if flag_out == 1:
-        result.update({'out': [len(data), data[-1]]})
+        result.append(f'Выход за границу: x0 = {len(data)}')
     if flag_monotone == 1:
-        result.update({f'monotone ({monotone_type})': [len(data) - 5, [data[i] for i in range(-6, 0)]]})
+        result.append(f'Монотонность ({monotone_type}): x0 = {len(data)-5}')
     if flag_oneside == 1:
-        result.update({f'oneside ({oneside_type})': [len(data) - 6, [data[i] for i in range(-7, 0)]]})
+        result.append(f'По одну сторону от ср. линии ({oneside_type}): x0 = {len(data)-6}')
 
     if len(result) >= 1:
-        print(result)
-    return result
+        global FLAGS, TO_DELETE_WIDGET, TO_DELETE_LABEL
+        for r in result:
+            FLAGS.append(r)
+
+        if TO_DELETE_WIDGET:
+            TO_DELETE_WIDGET.destroy()
+        if TO_DELETE_LABEL:
+            TO_DELETE_LABEL.destroy()
+
+        TO_DELETE_LABEL = tk.Label(text='Вывод критических ситуаций:', font=tk.font.Font(size=10))
+        TO_DELETE_LABEL.place(x=850, y=40)
+
+        flags_var = tk.Variable(value=FLAGS)
+        TO_DELETE_WIDGET = tk.Listbox(listvariable=flags_var, width=63, height=41, font=tk.font.Font(size=9))
+        TO_DELETE_WIDGET.place(x=850, y=70)
 
 
 def PlotUpdate(new_data, x, y, ax, average, deviation, upper_limit, lower_limit, warning_upper, warning_lower, view_size):
@@ -130,17 +146,19 @@ def PlotUpdate(new_data, x, y, ax, average, deviation, upper_limit, lower_limit,
 
     return ax
 
-def BuildPlot(average, deviation, filename, view_size, view_speed):
-    file = open(filename, 'r')
-
+def BuildPlot(average, deviation, view_size, view_speed, data, window):
     data_x = []
     data_y = []
-    upper_limit, lower_limit, warning_upper, warning_lower = control_values(center_line, std_dev_within)
-    data = GetData(file)
-
     fig, ax = plt.subplots()
-    fig.set_size_inches(10, 5)
+    fig.set_size_inches(8, 5)
 
+    upper_limit, lower_limit, warning_upper, warning_lower = control_values(average, deviation)
+    canvas = FigureCanvasTkAgg(fig, master=window)
+    canvas.draw()
+    canvas.get_tk_widget().place(x=30, y=230)
+
+    plt.xlabel('X, последовательность')
+    plt.ylabel('Y, переменная процесса')
     ani = FuncAnimation(fig, PlotUpdate, data, fargs=(data_x, data_y, ax, average, deviation, upper_limit, lower_limit, warning_upper, warning_lower, view_size),
                         interval=view_speed, repeat=False)
 
@@ -157,16 +175,23 @@ def BuildPlot(average, deviation, filename, view_size, view_speed):
     plt.show()
 
 
-number_of_data, loc, scale = 400, 50, 3
-group_means, std_dev_within, center_line = main(loc, scale, number_of_data)
+def start_work(flag, mat_oshid, disp, count, window, filename):
+    if (flag==1):
+        data = []
+        grouped_data, std_dev_within = main(mat_oshid,disp,count)
+        center_line = mat_oshid
+        BuildPlot(center_line, std_dev_within, 50, 50, grouped_data, window)
+    else:
+        file = open(filename, 'r')
+        data = GetData(file)
+        file.close()
 
+        number_of_data = len(data)
+        group_size = 4
+        num_groups = number_of_data // group_size
+        grouped_data = [data[i * group_size:(i + 1) * group_size] for i in range(num_groups)]
+        new_data = np.mean(grouped_data, axis=1)
+        std_dev_within = np.std(data, ddof=1)
+        center_line = np.mean(new_data)
+        BuildPlot(center_line, std_dev_within, 50, 50, new_data, window)
 
-# Сохранение данных в файл
-filename = 'generated_data.txt'
-with open(filename, 'w') as file:
-    for value in group_means:
-        file.write(f'{value}\n')
-
-# Построение интерактивного графика с анимацией и слайдером
-
-BuildPlot(center_line, std_dev_within, filename, 30, 200)
