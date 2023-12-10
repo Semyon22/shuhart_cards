@@ -3,6 +3,7 @@ from tkinter import *
 from tkinter import ttk
 import control_map
 import median_map
+import average_value
 from median_map import FLAGS
 
 
@@ -21,6 +22,13 @@ def ClearWidgets():
         median_map.TO_DELETE_LABEL.destroy()
     if median_map.TO_DELETE_WIDGET:
         median_map.TO_DELETE_WIDGET.destroy()
+
+    if len(average_value.FLAGS) >= 1:
+        average_value.FLAGS.clear()
+    if average_value.TO_DELETE_LABEL:
+        average_value.TO_DELETE_LABEL.destroy()
+    if average_value.TO_DELETE_WIDGET:
+        average_value.TO_DELETE_WIDGET.destroy()
 
 def CheckCombobox():
     ClearWidgets()
@@ -47,7 +55,26 @@ def CheckCombobox():
             )
     elif combobox.get() == cards[1]:
         # Грошев
-        pass
+        if (
+                r_var.get() == 1 and entry_for_deviation.get() != '' and entry_for_median.get() != '' and entry_for_count.get() != ''):
+            average_value.start_work(
+                r_var.get(),
+                float(entry_for_median.get()),
+                float(entry_for_deviation.get()),
+                int(entry_for_count.get()),
+                window,
+                'none'
+            )
+        if (r_var.get() == 0 and entry_for_file.get() != ''):
+            average_value.start_work(
+                r_var.get(),
+                0,
+                0,
+                0,
+                window,
+                entry_for_file.get()
+            )
+
     elif combobox.get() == cards[2]:
         # Попов
         if (r_var.get()==1 and entry_for_deviation.get()!='' and entry_for_median.get()!='' and entry_for_count.get()!=''):
