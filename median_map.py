@@ -1,3 +1,5 @@
+import numpy
+
 from Generator import WriteToFile
 import numpy as np
 import matplotlib.pyplot as plt
@@ -5,6 +7,12 @@ import matplotlib.animation as animation
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,
                                                NavigationToolbar2Tk)
 from matplotlib.widgets import Slider
+import tkinter as tk
+
+FLAGS = []
+TO_DELETE_WIDGET = None
+TO_DELETE_LABEL = None
+
 def CheckFlags(data, median, OEG):
     flag_out = 0
     flag_monotone = 1
@@ -47,16 +55,33 @@ def CheckFlags(data, median, OEG):
     else:
         flag_oneside = 0
 
-    result = {}
+    result = []
     if flag_out == 1:
-        result.update({'out': [len(data), data[-1]]})
+        result.append(f'Выход за границу: x0 = {len(data)}')
+
     if flag_monotone == 1:
-        result.update({f'monotone ({monotone_type})': [len(data)-5, [data[i] for i in range(-6, 0)]]})
+        result.append(f'Монотонность ({monotone_type}): x0 = {len(data)-5}')
+
     if flag_oneside == 1:
-        result.update({f'oneside ({oneside_type})': [len(data)-6, [data[i] for i in range(-7, 0)]]})
+        result.append(f'По одну сторону от ср. линии ({oneside_type}): x0 = {len(data)-6}')
+
 
     if len(result) >= 1:
-        print(result)
+        global FLAGS, TO_DELETE_WIDGET, TO_DELETE_LABEL
+        for r in result:
+            FLAGS.append(r)
+
+        if TO_DELETE_WIDGET:
+            TO_DELETE_WIDGET.destroy()
+        if TO_DELETE_LABEL:
+            TO_DELETE_LABEL.destroy()
+
+        TO_DELETE_LABEL = tk.Label(text='Вывод критических ситуаций:', font=tk.font.Font(size=10))
+        TO_DELETE_LABEL.place(x=850, y=40)
+
+        flags_var = tk.Variable(value=FLAGS)
+        TO_DELETE_WIDGET = tk.Listbox(listvariable=flags_var, width=63, height=41, font=tk.font.Font(size=9))
+        TO_DELETE_WIDGET.place(x=850, y=70)
     return result
 
 
@@ -68,9 +93,9 @@ def get_seq(mat_oshid,disp, N):
     :param N:
     :return:
     """
-    #так-как выборка генерируется по параметру отклонения рассчитаем его как квадратный корень из дисперсий для нашей контрольной какрты
+    #так-как выборка генерируется по параметру отклонения рассчитаем его как квадратный корень из дисперсий для нашей контрольной карты
     #
-    otkl=((disp*0.17106 ** 2)/100)**0.5
+    otkl=disp**0.5
 
     return np.random.normal(mat_oshid, otkl, N)
 
@@ -92,22 +117,18 @@ def get_control_boundaries(array):
     """
     _, otkl, mean = get_param(array)
     print(np.shape(array))
+    print("отклонение:",otkl)
     print(f"+:{(2.576 / (np.shape(array)[0] ** 0.5)) * otkl * 9.3}")
     print(f"-:{(2.576 / (np.shape(array)[0] ** 0.5)) * otkl *9.3}")
-    OEG = mean + (2.576 / (np.shape(array)[0] ** 0.5)) * otkl *9.3
-    UEG = mean - (2.576 / (np.shape(array)[0] ** 0.5)) * otkl * 9.3
-    OWG = mean + (1.960 / (np.shape(array)[0] ** 0.5)) * otkl * 9.3
-    UWG = mean - (1.960 / (np.shape(array)[0] ** 0.5)) * otkl * 9.3
+    OEG = mean + (2.576 / (np.shape(array)[0] ** 0.5)) * otkl *(np.shape(array)[0] ** 0.5)
+    UEG = mean - (2.576 / (np.shape(array)[0] ** 0.5)) * otkl *(np.shape(array)[0] ** 0.5)
+    OWG = mean + (1.960 / (np.shape(array)[0] ** 0.5)) * otkl *(np.shape(array)[0] ** 0.5)
+    UWG = mean - (1.960 / (np.shape(array)[0] ** 0.5)) * otkl *(np.shape(array)[0] ** 0.5)
     return (OEG, UEG, OWG, UWG)
 
 
-m = get_seq(5,1, 100)
-print("Границы",get_control_boundaries(m))
-print(np.sort(m))
-print("Мат ожидание:",m.mean())
-print("Дисперсия:",m.var())
-print("отклонение",m.std())
-print('Медиана:',np.median(m))
+
+
 
 def GetData(file):
     data = []
@@ -121,7 +142,7 @@ def WriteToFile(m):
     for i in range((np.shape(m)[0])):
         file.write(str(m[i]) +"\n")
     file.close()
-WriteToFile(m)
+
 
 def PlotUpdate(new_y, x, y, ax, median, OEG,UEG,OWG,UWG,view_size):
     if (len(x) == 0):
@@ -142,39 +163,34 @@ def PlotUpdate(new_y, x, y, ax, median, OEG,UEG,OWG,UWG,view_size):
     ax.plot([x[0], x[-1]], [UWG] * 2, 'g--', linewidth=0.5,color='yellow',label='UWG')
 
 
-    ax.legend(['Values','Median','OEG','UEG','UWG','UWG'],loc='upper left',prop={'size': 8})
+    ax.legend(['Values','Median','OEG','UEG','UWG','OWG'],loc='upper left',prop={'size': 8})
 
     ax.autoscale_view(True, True, True)
     ax.set_facecolor("black")
+    CheckFlags(y, median, OEG)
 
-    # if (len(CheckFlags(y,median,OEG))>=1):
-    #     print('работает')
-    #     global pause
-    #     pause ^= True
     return ax
 
 
 
-def BuildPlot(view_size,view_speed,window):
+def BuildPlot(view_size,view_speed,window,data):
     x = []
     y = []
     fig, ax = plt.subplots()
-    fig.set_size_inches(5.5, 4.5)
+    fig.set_size_inches(8, 5)
 
-    OEG,UEG,OWG,UWG=get_control_boundaries(m)
-    file = open('seq',
-                'r')
-    data = GetData(file)
 
-    canvas=FigureCanvasTkAgg(fig,master=window)
+    OEG,UEG,OWG,UWG=get_control_boundaries(data)
+
+    canvas = FigureCanvasTkAgg(fig, master=window)
+
     canvas.draw()
-    canvas.get_tk_widget().grid(column=0,row=4,columnspan=2,sticky='ew')
-    # toolbar = NavigationToolbar2Tk(canvas,
-    #                                window)
-    # toolbar.update()
-    canvas.get_tk_widget().grid(column=0,row=4,columnspan=2,sticky='ew')
+    canvas.get_tk_widget().place(x=30, y=230)
 
-    ani = animation.FuncAnimation(fig, PlotUpdate, data, fargs=(x, y, ax, np.median(m),OEG,UEG,OWG,UWG,view_size ), interval=view_speed, repeat=False)
+    plt.xlabel('Номер элемента (X)')
+    plt.ylabel('Значение (Y)')
+
+    ani = animation.FuncAnimation(fig, PlotUpdate, data, fargs=(x, y, ax, np.median(data),OEG,UEG,OWG,UWG,view_size ), interval=view_speed, repeat=False)
 
     axcolor = 'lightgoldenrodyellow'
     axpos = plt.axes([0.2, 0, 0.6, 0.03], facecolor=axcolor)
@@ -186,6 +202,23 @@ def BuildPlot(view_size,view_speed,window):
         fig.canvas.draw_idle()
 
     spos.on_changed(update)
-    # plt.show()
     ani.save()
+
+
+def start_work_median(flag,mat_oshid,disp,count,window,filename):
+    if (flag==1):
+        data = get_seq(mat_oshid,disp,count)
+        BuildPlot(50,50,window,data)
+    else:
+
+        file = open(filename,
+                        'r')
+        data = numpy.array(GetData(file))
+        BuildPlot(50,50,window,data)
+        file.close()
+
+
+
+
+
 # BuildPlot(50,50)
