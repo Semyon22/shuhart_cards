@@ -13,7 +13,7 @@ def GenNormalRandVal():
     return math.sqrt(-2 * math.log(r1)) * math.cos(2*math.pi * r2)
 
 def GenRandVal(norm_val, average, deviation):
-    return average + norm_val * deviation * 0.5
+    return average + norm_val * deviation * 0.4
 
 def WriteToFile(average, deviation, N, filename):
     file = open(filename, 'w')
@@ -22,6 +22,5 @@ def WriteToFile(average, deviation, N, filename):
     file.close()
 
 
-
-"""if __name__ == '__main__':
-    WriteToFile(10, 1, 10, 'test.txt')"""
+# if __name__ == '__main__':
+#     WriteToFile(20, 3, 1000, 'test.txt')
