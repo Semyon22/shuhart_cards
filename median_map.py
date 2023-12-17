@@ -154,7 +154,7 @@ def PlotUpdate(new_y, x, y, ax, median, OEG,UEG,OWG,UWG,view_size):
     if len(x) > view_size:
         ax.set_xlim(len(x) - view_size - 1, len(x) + 1)
         ax.set_ylim(min(y, default=0) - 1, max(y, default=0) + 1)
-    ax.plot(x, y, color='blue', linewidth=0.5, linestyle='-', marker='o', markerfacecolor='white', markeredgecolor='white', markersize=2,label='values')
+    ax.plot(x, y, color='black', linewidth=1, linestyle='-', marker='o', markerfacecolor='orange', markeredgecolor='orange', markersize=3,label='values')
     ax.plot([x[0], x[-1]], [median]*2, 'g-', linewidth=1,label='median')
 
     ax.plot([x[0], x[-1]], [OEG]*2, 'r--', linewidth=1,label='OEG')
@@ -166,7 +166,7 @@ def PlotUpdate(new_y, x, y, ax, median, OEG,UEG,OWG,UWG,view_size):
     ax.legend(['Values','Median','OEG','UEG','UWG','OWG'],loc='upper left',prop={'size': 8})
 
     ax.autoscale_view(True, True, True)
-    ax.set_facecolor("black")
+    ax.set_facecolor("white")
     CheckFlags(y, median, OEG)
 
     return ax

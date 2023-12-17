@@ -1,11 +1,14 @@
 import tkinter.font
 from tkinter import *
-from tkinter import ttk
+from tkinter import ttk , filedialog
+
 import control_map
 import median_map
 import average_value
 from median_map import FLAGS
-
+from tkinter.messagebox import showerror, showwarning, showinfo
+global FILE_NAME
+FILE_NAME = 'Файл не выбран'
 
 
 def ClearWidgets():
@@ -44,14 +47,14 @@ def CheckCombobox():
                 window,
                 'none'
             )
-        if (r_var.get() == 0 and entry_for_file.get() != ''):
+        if (r_var.get() == 0 and FILE_NAME != ''):
             control_map.start_work(
                 r_var.get(),
                 0,
                 0,
                 0,
                 window,
-                entry_for_file.get()
+                FILE_NAME
             )
     elif combobox.get() == cards[1]:
         # Грошев
@@ -65,14 +68,14 @@ def CheckCombobox():
                 window,
                 'none'
             )
-        if (r_var.get() == 0 and entry_for_file.get() != ''):
+        if (r_var.get() == 0 and FILE_NAME != ''):
             average_value.start_work(
                 r_var.get(),
                 0,
                 0,
                 0,
                 window,
-                entry_for_file.get()
+                FILE_NAME
             )
 
     elif combobox.get() == cards[2]:
@@ -86,14 +89,14 @@ def CheckCombobox():
                 window,
                 'none'
             )
-        if (r_var.get() == 0 and entry_for_file.get()!=''):
+        if (r_var.get() == 0 and FILE_NAME!=''):
             median_map.start_work(
                     r_var.get(),
                     0,
                     0,
                     0,
                     window,
-                    entry_for_file.get()
+                    FILE_NAME
             )
 
 
@@ -118,12 +121,28 @@ def check_widget_activity():
         entry_for_median.state(["disabled"])
         entry_for_deviation.state(["disabled"])
         entry_for_count.state(["disabled"])
-        entry_for_file.state(['!disabled'])
+        file_button.state(['!disabled'])
     elif r_var.get() == 1:
-        entry_for_file.state(['disabled'])
+        file_button.state(['disabled'])
         entry_for_median.state(["!disabled"])
         entry_for_deviation.state(["!disabled"])
         entry_for_count.state(["!disabled"])
+
+def open_file():
+    filetypes = (
+        ('text files', '*.txt'),
+        ('All files', '*.*')
+    )
+    try:
+        filepath = filedialog.askopenfilename(filetypes =filetypes)
+        global FILE_NAME
+        FILE_NAME = filepath
+
+        buf_mas = filepath.split('/')
+        lbl_for_file.config(text=f"Текущий файл:{buf_mas[len(buf_mas)-1]}")
+        showinfo(title="Сообщение об открытии файла", message=f"Файл {buf_mas[len(buf_mas)-1]}\n успешно выбран!")
+    except:
+        showerror(title="Сообщение об открытии файла", message=f"Что-то пошло не так")
 
 
 window = Tk()  # Иницилизация окна
@@ -134,7 +153,7 @@ window.geometry("1400x800")  # Размер окна
 lbl_for_combox = Label(text="Выберите карту:")
 lbl_for_combox.place(x=30, y=40)
 
-lbl_for_file = Label(text="Введите имя файла:")
+lbl_for_file = Label(text=f"Текущий файл:{FILE_NAME}")
 lbl_for_file.place(x=30, y=70)
 
 lbl_for_median = Label(text="Введите среднее значение:")
@@ -153,9 +172,9 @@ combobox = ttk.Combobox(values=cards, width=40, state="readonly")
 combobox.place(x=210, y=40)
 combobox.bind("<<ComboboxSelected>>", selected)
 
-entry_for_file = ttk.Entry(width=30)
-entry_for_file.place(x=210, y=70)
-entry_for_file.state(['disabled'])  # изначально не работает так-как чекбокс в таком положении
+# entry_for_file = ttk.Entry(width=30)
+# entry_for_file.place(x=210, y=70)
+# entry_for_file.state(['disabled'])  # изначально не работает так-как чекбокс в таком положении
 
 entry_for_median = ttk.Entry(width=30)
 entry_for_median.place(x=210, y=100)
@@ -176,6 +195,10 @@ r2.place(x=30, y=0)
 # кнопки
 plot_button = ttk.Button(text="Запустить", command=CheckCombobox)
 plot_button.place(x=30, y=200)
+
+file_button = ttk.Button(text = "Выбрать файл", command=open_file)
+file_button.place(x=210,y=70,width=187)
+file_button.state(['disabled'])
 
 if __name__ == "__main__":
     window.mainloop()

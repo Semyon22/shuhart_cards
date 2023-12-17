@@ -103,14 +103,14 @@ def PlotUpdate(new_data, x, y, ax, average, deviation, view_size):
         ax.set_xlim(len(x)-view_size-1, len(x)+1)
         ax.set_ylim(min(y, default=0) - 1, max(y, default=0) + 1)
 
-    ax.plot(x, y, color='blue', linewidth=0.5, linestyle='-', marker='o', markerfacecolor='white', markeredgecolor='white', markersize=2)
+    ax.plot(x, y, color='black', linewidth=1, linestyle='-', marker='o', markerfacecolor='orange', markeredgecolor='orange', markersize=3,label='values')
     ax.plot([x[0], x[-1]], [average] * 2, 'g-', linewidth=1)
     ax.plot([x[0], x[-1]], [average + deviation] * 2, 'r--', linewidth=1)
     ax.plot([x[0], x[-1]], [average - deviation] * 2, 'r--', linewidth=1)
     # ax.plot([x[0], x[-1]], [average + 0.9*deviation] * 2, 'r--', linewidth=1)
     # ax.plot([x[0], x[-1]], [average - 0.9*deviation] * 2, 'r--', linewidth=1)
 
-    ax.set_facecolor("black")
+    ax.set_facecolor("white")
     ax.legend(['Значения', 'Средняя линия', 'Контрольные границы'], loc='upper left', prop={'size': 8})
     ax.autoscale_view(True, True, True)
 
