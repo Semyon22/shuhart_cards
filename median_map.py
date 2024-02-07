@@ -146,11 +146,7 @@ def PlotUpdate(new_y, x, y, ax, median, OEG,UEG,OWG,UWG,view_size):
 
     ax.autoscale_view(True, True, True)
     ax.set_facecolor("black")
-
-    # if (len(CheckFlags(y,median,OEG))>=1):
-    #     print('работает')
-    #     global pause
-    #     pause ^= True
+  
     return ax
 
 
@@ -169,9 +165,6 @@ def BuildPlot(view_size,view_speed,window):
     canvas=FigureCanvasTkAgg(fig,master=window)
     canvas.draw()
     canvas.get_tk_widget().grid(column=0,row=4,columnspan=2,sticky='ew')
-    # toolbar = NavigationToolbar2Tk(canvas,
-    #                                window)
-    # toolbar.update()
     canvas.get_tk_widget().grid(column=0,row=4,columnspan=2,sticky='ew')
 
     ani = animation.FuncAnimation(fig, PlotUpdate, data, fargs=(x, y, ax, np.median(m),OEG,UEG,OWG,UWG,view_size ), interval=view_speed, repeat=False)
@@ -186,6 +179,5 @@ def BuildPlot(view_size,view_speed,window):
         fig.canvas.draw_idle()
 
     spos.on_changed(update)
-    # plt.show()
+    
     ani.save()
-# BuildPlot(50,50)
