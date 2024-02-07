@@ -106,9 +106,6 @@ def BuildPlot(average, deviation, filename, view_size, view_speed,window):
     canvas=FigureCanvasTkAgg(fig,master=window)
     canvas.draw()
     canvas.get_tk_widget().grid(column=0,row=4,columnspan=2,sticky='ew')
-    # toolbar = NavigationToolbar2Tk(canvas,
-    #                                window)
-    # toolbar.update()
     canvas.get_tk_widget().grid(column=0,row=4,columnspan=2,sticky='ew')
     ani = FuncAnimation(fig, PlotUpdate, data, fargs=(data_x, data_y, ax, average, deviation, view_size), interval=view_speed, repeat=False)
 
@@ -124,11 +121,3 @@ def BuildPlot(average, deviation, filename, view_size, view_speed,window):
     ani.save()
 
 
-#
-# if __name__ == '__main__':
-#     average = 10
-#     deviation = 1
-#     filename = '../../Downloads/test.txt'
-#
-#     Generator.WriteToFile(average, deviation, 200, filename)
-#     BuildPlot(average, deviation, filename, view_size=50, view_speed=50)
